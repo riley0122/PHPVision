@@ -1,7 +1,6 @@
 <?php
 require "phpVisionApi.php";
-register_page_hit("/");
-register_active_user();
+phpVision_auto_register();
 ?>
 
 <!DOCTYPE html>

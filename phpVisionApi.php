@@ -35,4 +35,12 @@ function register_custom_event($name, $info="") {
     $stmt->execute();
     $conn->close();
 }
+
+function phpVision_auto_register($currentPath="") {
+    register_active_user();
+    trim($currentPath);
+    if ($currentPath == "") $currentPath = explode('?', $_SERVER['REQUEST_URI'], 2)[0];
+    trim($currentPath);
+    register_page_hit($currentPath);
+}
 ?>
