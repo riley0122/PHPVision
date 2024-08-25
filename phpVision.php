@@ -414,7 +414,7 @@ echo $sqlendsequence;
                             $events[] = json_decode($row["data"], true);
                         }
                     } else {
-                        echo '<div class="NoData">No data found</div><br>';
+                        echo '<div class="NoData">No data found</div>';
                         $noPageViews = true;
                     }
 
@@ -446,6 +446,7 @@ echo $sqlendsequence;
         <div id="CustomEventsBox" class="dataBox">
             <h2 class="dataBoxTitle">Custom Events</h2>
             <hr>
+            <div class="NoData">No data found</div>
         </div>
     </div>
     <script>
