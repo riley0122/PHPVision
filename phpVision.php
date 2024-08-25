@@ -259,7 +259,6 @@ echo $sqlendsequence;
         table {
             border-collapse: collapse;
             width: 100%;
-            height: 100%;
         }
 
         tr {
@@ -415,11 +414,12 @@ echo $sqlendsequence;
                             $events[] = json_decode($row["data"], true);
                         }
                     } else {
-                        echo '<div class="NoData">No data found</div>';
+                        echo '<div class="NoData">No data found</div><br>';
                         $noPageViews = true;
                     }
 
                     // create an array with endpoints as keys and hits as value
+
                     $endpointHits = new stdClass;
                     foreach ($events as $event) {
                         if (!isset($event["page"])) continue;
