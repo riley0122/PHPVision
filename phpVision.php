@@ -218,14 +218,14 @@ echo $sqlendsequence;
             padding: 20px;
             padding-top: 0;
             border: #433BFF solid 5px;
-            border-radius: 50px;
+            border-radius: 30px;
             font-family: "Noto Sans Lao", sans-serif;
         }
 
         hr {
             background-color: #dedcff;
             color: #dedcff;
-            height: 2px;
+            height: 3px;
             border: none;
             margin-top: none;
         }
@@ -255,6 +255,79 @@ echo $sqlendsequence;
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
         }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            height: 100%;
+        }
+
+        tr {
+            border-bottom: 2px solid #dedcff;
+        }
+
+        td:nth-child(even) {
+            border-left: 2px solid #dedcff;
+            padding-left: 20px;
+            width: 25%;
+        }
+
+        th:nth-child(even) {
+            width: 25%;
+            text-align: left;
+            padding-left: 30px;
+        }
+
+        th:nth-child(odd), td:nth-child(odd) {
+            padding-left: 15px;
+        }
+
+        th:nth-child(even), td:nth-child(even) {
+            padding-right: 20px;
+        }
+
+        tr {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        #pageHitsBox {
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #pageHitsBox::-webkit-scrollbar {
+            display: none;
+        }
+
+
+        @media only screen and (max-width: 800px) {
+            #container {
+                display: flex;
+                flex-direction: column;
+                flex-wrap: nowrap;
+            }
+
+            .dataBox {
+                margin-top: 10px;
+                margin-bottom: 0;
+            }
+
+            #ActiveUserGraph>div:nth-child(-n+8) {
+                display: none;
+            }
+        }
+
+        @media only screen and (max-width: 450px) {
+            #ActiveUserGraph>div:nth-child(-n+12) {
+                display: none;
+            }
+        }
+
+
     </style>
 </head>
 <body>
@@ -266,10 +339,7 @@ echo $sqlendsequence;
                 <?php
                     $emptyActivityData = false;
 
-                    // Generate timestamp 14 days ago
-                    $timestamp = strtotime("-14 days");
-
-                    // SQL get all datapoints with that timestamp
+                    // SQL get all datapoints in the past 14 days
                     $sql = "SELECT * FROM Events WHERE Time > DATE_SUB(NOW(), INTERVAL 14 DAY) AND type = 'activeUser'";
                     $result = $conn->query($sql);
                     $events = array();
@@ -325,13 +395,65 @@ echo $sqlendsequence;
         </div>
         <div id="PageHitsBox" class="dataBox">
             <h2 class="dataBoxTitle">Page Activity</h2>
+            <span id="pageHitsMoreRows" style="display: none;">↓ Scroll for more rows ↓</span>
             <hr>
+            <table>
+                <tr>
+                    <th>Page</th>
+                    <th>Hits</th>
+                </tr>
+                <?php
+                    $noPageViews = false;
+
+                    // SQL get all datapoints in the last 7 days
+                    $sql = "SELECT data FROM Events WHERE Time > DATE_SUB(NOW(), INTERVAL 7 DAY) AND type = 'pageView'";
+                    $result = $conn->query($sql);
+                    $events = array();
+
+                    if ($result->num_rows > 0){
+                        while($row = $result->fetch_assoc()) {
+                            $events[] = json_decode($row["data"], true);
+                        }
+                    } else {
+                        echo '<div class="NoData">No data found</div>';
+                        $noPageViews = true;
+                    }
+
+                    // create an array with endpoints as keys and hits as value
+                    $endpointHits = new stdClass;
+                    foreach ($events as $event) {
+                        if (!isset($event["page"])) continue;
+                        if(!isset($endpointHits->{$event["page"]})) $endpointHits->{$event["page"]} = 0;
+
+                        $endpointHits->{$event["page"]} += 1;
+                    }
+                    $endpointHits = (array) $endpointHits;
+                    arsort($endpointHits);
+                    echo "<script>console.log('Page hit data: ' + `" . print_r($endpointHits, true) . "`);</script>";
+
+                    // loop over that array making new rows
+                    foreach ($endpointHits as $endpoint => $hits) {
+                        ob_start(); ?>
+                        <tr>
+                            <td><?php echo $endpoint; ?></td>
+                            <td><?php echo $hits; ?></td>
+                        </tr>
+                    <?php echo ob_get_clean();
+                    }
+                ?>
+            </table>
         </div>
         <div id="CustomEventsBox" class="dataBox">
             <h2 class="dataBoxTitle">Custom Events</h2>
             <hr>
         </div>
     </div>
+    <script>
+        const pageHitsBox = document.getElementById("PageHitsBox");
+        if (pageHitsBox.scrollHeight > pageHitsBox.clientHeight) {
+            document.getElementById("pageHitsMoreRows").style.display = "inline";
+        }
+    </script>
 </body>
 </html>
 
