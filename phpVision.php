@@ -1,18 +1,9 @@
 <?php
-// *************************
-//
-//      Configuration
-//
-// *************************
-
-$db_server_name = "127.0.0.1:3307";
-$db_username = "root";
-$db_password = "strong_password";
+require "phpVisionConfig.php";
 
 // SQL
-
 $sqlendsequence= "";
-$conn = new mysqli($db_server_name, $db_username, $db_password);
+$conn = new mysqli($GLOBALS["db_server_name"], $GLOBALS["db_username"], $GLOBALS["db_password"]);
 if ($conn->connect_error) {
     die("Connection to database failed.<br>error: " . $conn->connect_error);
 }
