@@ -302,6 +302,17 @@ echo $sqlendsequence;
             display: none;
         }
 
+        #tooltip {
+            position: absolute;
+            pointer-events: none;
+            padding: 15px;
+            background-color: #dedcff;
+            border-radius: 15px;
+            border-bottom-left-radius: 0;
+            font-family: "Noto Sans Lao", sans-serif;
+            transform: translateY(-100%);
+        }
+
 
         @media only screen and (max-width: 800px) {
             #container {
@@ -317,6 +328,10 @@ echo $sqlendsequence;
 
             #ActiveUserGraph>div:nth-child(-n+8) {
                 display: none;
+            }
+
+            #tooltip {
+                border-bottom-left-radius: 15px;
             }
         }
 
@@ -363,6 +378,7 @@ echo $sqlendsequence;
 
                     echo "<script>console.log('Activity data: ' + `" . print_r($activityData, true) . "`);</script>";
 
+                    $tooltip_texts = new stdClass;
                     // Create div for each datapoint
                     if (!$emptyActivityData) {
                         for ($i=1; $i <= 14; $i++) {
@@ -382,13 +398,15 @@ echo $sqlendsequence;
                             $thisValue *= 100;
 
                             ob_start(); ?>
-                            <div class="datapoint">
-                                <div class="GraphElement" style="height: <?php echo $thisValue?>%;"></div>
+                            <div class="datapoint"">
+                                <div class="GraphElement tooltipItem" style="height: <?php echo $thisValue?>%;" id="GraphPoint<?php echo $i; ?>"></div>
                                 <div class="DateMarker"><?php echo $date; ?></div>
                             </div>
                         <?php echo ob_get_clean();
+                            $tooltip_texts->{"GraphPoint" . $i} = $activityData[$date] . " Active users\non " . $date;
                         }
                     }
+                    $tooltip_texts = json_encode($tooltip_texts);
                 ?>
             </div>
         </div>
@@ -449,11 +467,45 @@ echo $sqlendsequence;
             <div class="NoData">No data found</div>
         </div>
     </div>
+    <div id="tooltip" style="opacity: 0;"></div>
     <script>
         const pageHitsBox = document.getElementById("PageHitsBox");
         if (pageHitsBox.scrollHeight > pageHitsBox.clientHeight) {
             document.getElementById("pageHitsMoreRows").style.display = "inline";
         }
+
+        const tooltip_texts = <?php echo $tooltip_texts ?>
+
+        const tooltip_items = document.getElementsByClassName("tooltipItem");
+
+        const tooltip = document.getElementById("tooltip");
+
+        for (let i = 0; i < tooltip_items.length; i++) {
+            const tooltip_item = tooltip_items[i];
+
+            tooltip_item.addEventListener("mouseenter", (event) => {
+                if (tooltip_texts.hasOwnProperty(event.target.id)) tooltip.innerText = tooltip_texts[event.target.id];
+                setTimeout(()=>{
+                    tooltip.style.opacity = 1;
+                }, 10);
+            });
+
+            tooltip_item.addEventListener("mouseleave", () => {
+                tooltip.style.opacity = 0;
+            });
+        }
+
+        document.addEventListener("mousemove", (event) => {
+            let offset = "0";
+            tooltip.style.borderBottomLeftRadius = "";
+            if(window.innerWidth - event.clientX <= tooltip.offsetWidth) {
+                offset = tooltip.offsetWidth + "px";
+                tooltip.style.borderBottomLeftRadius = "15px";
+            }
+            tooltip.style.left = (event.clientX - offset) + "px";
+            tooltip.style.top = event.clientY + "px";
+        });
+
     </script>
 </body>
 </html>
